@@ -227,7 +227,7 @@ export default function Landing({ onNavigate }: Props) {
               <span style={{ color: "#3a3d4a" }}>CA</span> {CA.slice(0, 6)}...{CA.slice(-4)}
               <span style={{ fontSize: 9, color: copied ? "#50c878" : "#3a3d4a", transition: "color 0.2s" }}>{copied ? "✓" : "COPY"}</span>
             </span>
-            <a href="https://x.com/TrenchTreasures" target="_blank" rel="noopener noreferrer"
+            <a href="https://x.com/TraceOnSol" target="_blank" rel="noopener noreferrer"
               style={{
                 padding: "7px 14px", fontSize: 11, color: "#5a5d6b", textDecoration: "none", borderRadius: 6,
                 background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", transition: "all 0.2s",
@@ -419,7 +419,7 @@ export default function Landing({ onNavigate }: Props) {
         <div style={{ display: "flex", gap: 20 }}>
           <span style={{ cursor: "pointer" }}>Privacy</span>
           <span style={{ cursor: "pointer" }}>Terms</span>
-          <a href="https://x.com/TrenchTreasures" target="_blank" rel="noopener noreferrer" style={{ color: "#1e2030", textDecoration: "none" }}>𝕏</a>
+          <a href="https://x.com/TraceOnSol" target="_blank" rel="noopener noreferrer" style={{ color: "#1e2030", textDecoration: "none" }}>𝕏</a>
         </div>
       </footer>
     </div>
