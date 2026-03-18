@@ -345,23 +345,21 @@ export default function Landing({ onNavigate }: Props) {
       {/* ===== FEATURE GRID ===== */}
       <div style={{
         position: "relative", zIndex: 2, maxWidth: 1100, margin: "20px auto 0", padding: "0 40px",
-        display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1,
+        display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1,
         background: "rgba(255,255,255,0.02)", borderRadius: 14, overflow: "hidden",
       }}>
         {[
-          { icon: "⚡", title: "Real-time streaming", desc: "WebSocket-powered. Watch results appear live as each platform responds." },
-          { icon: "📄", title: "PDF reports", desc: "Export intelligence reports with timestamps, links, and confidence scores." },
+          { icon: "⚡", title: "Real-time streaming", desc: "WebSocket-powered. Results appear live as each platform responds." },
           { icon: "🔗", title: "REST + WS API", desc: "Programmatic access. Integrate Trace into any existing workflow." },
-          { icon: "🔥", title: "$TRACE burns", desc: "Deflationary. Every scan burns tokens. Hold for lifetime Pro access." },
+          { icon: "🔥", title: "$TRACE burns", desc: "Deflationary. Every scan burns tokens. Hold for lifetime Pro." },
           { icon: "📡", title: "Batch scanning", desc: "Queue 50+ targets. Process multiple usernames in parallel." },
-          { icon: "🛡️", title: "VoIP detection", desc: "Identify virtual numbers, disposable lines, and carrier spoofing." },
           { icon: "💀", title: "Breach exposure", desc: "Cross-reference against known data breaches and leaked databases." },
           { icon: "🌐", title: "Global coverage", desc: "International phone numbers. 195 countries. Every major carrier." },
         ].map((f, i) => (
           <div key={i} style={{
             padding: "28px 24px", background: "rgba(10,11,15,0.9)",
-            borderRight: i % 4 !== 3 ? "1px solid rgba(255,255,255,0.02)" : "none",
-            borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.02)" : "none",
+            borderRight: i % 3 !== 2 ? "1px solid rgba(255,255,255,0.02)" : "none",
+            borderBottom: i < 6 ? "1px solid rgba(255,255,255,0.02)" : "none",
             transition: "background 0.2s",
           }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(20,21,30,0.9)")}
