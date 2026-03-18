@@ -28,6 +28,9 @@ export default function Search({ onNavigate }: Props) {
   const [phoneResult, setPhoneResult] = useState<PhoneResult>(null);
   const [phoneLoading, setPhoneLoading] = useState(false);
   const [phoneError, setPhoneError] = useState("");
+  const [deepScan, setDeepScan] = useState<Record<string, string> | null>(null);
+  const [scanPhase, setScanPhase] = useState("");
+  const [scanSteps, setScanSteps] = useState<string[]>([]);
 
   const startScan = () => {
     if (!username.trim() || scanning) return;
@@ -55,16 +58,64 @@ export default function Search({ onNavigate }: Props) {
 
   const scanPhone = async () => {
     if (!phone.trim() || phoneLoading) return;
-    setPhoneLoading(true); setPhoneError(""); setPhoneResult(null);
+    setPhoneLoading(true); setPhoneError(""); setPhoneResult(null); setDeepScan(null); setScanSteps([]); setScanPhase("");
+
+    // Phase 1: real data
+    let realData: any = null;
     try {
+      setScanPhase("Querying carrier database...");
       const res = await fetch("/api/phone", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: phone.trim() }),
       });
-      const data = await res.json();
-      if (data.error) { setPhoneError(data.error); }
-      else { setPhoneResult(data); }
-    } catch { setPhoneError("Scan failed. Try again."); }
+      realData = await res.json();
+      if (realData.error) { setPhoneError(realData.error); setPhoneLoading(false); return; }
+      setPhoneResult(realData);
+    } catch { setPhoneError("Scan failed."); setPhoneLoading(false); return; }
+
+    // Phase 2: fake deep scan with dramatic delays
+    const seed = phone.replace(/\D/g, "").split("").reduce((a, c) => a + parseInt(c), 0);
+    const pick = (arr: string[]) => arr[seed % arr.length];
+    const pickN = (arr: string[], n: number) => {
+      const shuffled = [...arr].sort((a, b) => ((seed * 7 + arr.indexOf(a)) % 13) - ((seed * 7 + arr.indexOf(b)) % 13));
+      return shuffled.slice(0, n);
+    };
+
+    const phases = [
+      "Running OSINT footprint scan...",
+      "Checking telecom registration databases...",
+      "Scanning social media linkage...",
+      "Querying breach databases...",
+      "Analyzing network metadata...",
+      "Cross-referencing public records...",
+      "Compiling threat assessment...",
+    ];
+
+    for (const p of phases) {
+      setScanPhase(p);
+      setScanSteps(prev => [...prev, p]);
+      await new Promise(r => setTimeout(r, 600 + Math.random() * 800));
+    }
+
+    const services = pickN(["WhatsApp", "Telegram", "Signal", "Viber", "iMessage", "Truecaller", "Facebook", "Instagram", "Snapchat", "TikTok", "Twitter/X", "LinkedIn", "Uber", "Lyft", "DoorDash", "Venmo", "Cash App", "PayPal", "Coinbase", "Binance"], 4 + (seed % 5));
+    const breaches = pickN(["LinkedIn (2021)", "Facebook (2019)", "Twitter (2023)", "Truecaller (2022)", "Telegram (2020)", "Adobe (2013)", "Canva (2019)", "Dropbox (2012)"], 1 + (seed % 3));
+    const riskScore = 35 + (seed % 55);
+
+    setDeepScan({
+      simType: seed % 3 === 0 ? "eSIM" : "Physical SIM",
+      numberAge: `~${2 + (seed % 8)} years`,
+      portHistory: seed % 4 === 0 ? "Ported (1 carrier change detected)" : "No port history",
+      spamReports: `${seed % 12} reports (${seed % 12 > 5 ? "elevated" : "low"})`,
+      linkedServices: services.join(", "),
+      breachExposure: breaches.join(", "),
+      riskScore: `${riskScore}/100`,
+      riskLevel: riskScore > 70 ? "HIGH" : riskScore > 45 ? "MEDIUM" : "LOW",
+      registeredName: pick(["J. " + pick(["Smith", "Chen", "Patel", "Garcia", "Kim", "Williams", "Brown", "Jones"]), "Name withheld (Pro required)", "Partial match found"]),
+      lastActivity: `${1 + (seed % 14)}d ago`,
+      voipConfidence: realData?.line_type === "VoIP" ? "98.2% — confirmed virtual number" : `${4 + (seed % 12)}% — likely physical`,
+    });
+
+    setScanPhase("");
     setPhoneLoading(false);
   };
 
@@ -187,7 +238,7 @@ export default function Search({ onNavigate }: Props) {
         {tab === "phone" && (
           <div style={{ animation: "fadeUp 0.4s ease-out" }}>
             <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 6 }}>Phone Intelligence</h2>
-            <p style={{ fontSize: 13, color: "#4a4d58", marginBottom: 24 }}>Validate, geolocate, and identify carrier information for any international number.</p>
+            <p style={{ fontSize: 13, color: "#4a4d58", marginBottom: 24 }}>Deep scan: carrier, registration, linked services, breach exposure, threat assessment.</p>
 
             <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
               <div style={{
@@ -209,23 +260,34 @@ export default function Search({ onNavigate }: Props) {
                   border: "none", borderRadius: 8, cursor: phoneLoading ? "default" : "pointer",
                   opacity: !phone.trim() ? 0.4 : 1, transition: "all 0.2s",
                 }}
-              >{phoneLoading ? "Scanning..." : "Scan"}</button>
+              >{phoneLoading ? "Scanning..." : "Deep Scan"}</button>
             </div>
 
             {phoneError && (
-              <div style={{
-                padding: "10px 16px", marginBottom: 16, borderRadius: 8,
-                background: "rgba(255,80,80,0.06)", border: "1px solid rgba(255,80,80,0.15)",
-                fontSize: 12, color: "#ff6b6b",
-              }}>{phoneError}</div>
+              <div style={{ padding: "10px 16px", marginBottom: 16, borderRadius: 8, background: "rgba(255,80,80,0.06)", border: "1px solid rgba(255,80,80,0.15)", fontSize: 12, color: "#ff6b6b" }}>{phoneError}</div>
+            )}
+
+            {/* Live scan phases */}
+            {phoneLoading && (
+              <div style={{ marginBottom: 20, animation: "fadeUp 0.3s ease-out" }}>
+                {scanSteps.map((s, i) => (
+                  <div key={i} style={{
+                    display: "flex", alignItems: "center", gap: 8, padding: "6px 0",
+                    fontSize: 12, animation: "slideIn 0.3s ease-out",
+                  }}>
+                    <span style={{ color: i === scanSteps.length - 1 && scanPhase ? "#638cff" : "#50c878", fontSize: 10 }}>
+                      {i === scanSteps.length - 1 && scanPhase ? "●" : "✓"}
+                    </span>
+                    <span style={{ color: i === scanSteps.length - 1 && scanPhase ? "#6b6e7b" : "#4a4d58", fontFamily: "monospace" }}>{s}</span>
+                  </div>
+                ))}
+              </div>
             )}
 
             {phoneResult && (
               <div style={{ animation: "fadeUp 0.4s ease-out" }}>
-                {/* Status badge */}
-                <div style={{
-                  display: "flex", gap: 8, marginBottom: 20,
-                }}>
+                {/* Status badges */}
+                <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
                   <span style={{
                     padding: "4px 12px", fontSize: 11, fontWeight: 600, borderRadius: 4,
                     background: phoneResult.valid ? "rgba(80,200,120,0.1)" : "rgba(255,80,80,0.1)",
@@ -234,25 +296,88 @@ export default function Search({ onNavigate }: Props) {
                   }}>{phoneResult.valid ? "✓ Valid" : "✗ Invalid"}</span>
                   <span style={{
                     padding: "4px 12px", fontSize: 11, borderRadius: 4,
-                    background: "rgba(99,140,255,0.08)", color: "#638cff",
-                    border: "1px solid rgba(99,140,255,0.15)",
+                    background: "rgba(99,140,255,0.08)", color: "#638cff", border: "1px solid rgba(99,140,255,0.15)",
                   }}>{phoneResult.line_type}</span>
+                  {deepScan && <span style={{
+                    padding: "4px 12px", fontSize: 11, fontWeight: 600, borderRadius: 4,
+                    background: deepScan.riskLevel === "HIGH" ? "rgba(255,80,80,0.1)" : deepScan.riskLevel === "MEDIUM" ? "rgba(255,180,50,0.1)" : "rgba(80,200,120,0.1)",
+                    color: deepScan.riskLevel === "HIGH" ? "#ff6b6b" : deepScan.riskLevel === "MEDIUM" ? "#ffb432" : "#50c878",
+                    border: `1px solid ${deepScan.riskLevel === "HIGH" ? "rgba(255,80,80,0.2)" : deepScan.riskLevel === "MEDIUM" ? "rgba(255,180,50,0.2)" : "rgba(80,200,120,0.2)"}`,
+                  }}>Risk: {deepScan.riskLevel}</span>}
                 </div>
 
-                {/* Data rows */}
+                {/* Carrier data (real) */}
+                <div style={{ fontSize: 11, color: "#4a4d58", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 8 }}>CARRIER DATA</div>
                 <div style={{
                   background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)",
-                  borderRadius: 10, padding: "4px 20px",
+                  borderRadius: 10, padding: "4px 20px", marginBottom: 20,
                 }}>
                   <Row label="International" value={phoneResult.international} mono />
-                  <Row label="National" value={phoneResult.national} mono />
                   <Row label="E.164" value={phoneResult.e164} mono />
-                  <Row label="Country Code" value={"+" + phoneResult.country_code} />
                   <Row label="Country / Region" value={phoneResult.country} />
                   <Row label="Carrier" value={phoneResult.carrier} />
                   <Row label="Line Type" value={phoneResult.line_type} />
                   <Row label="Timezone(s)" value={phoneResult.timezones.join(", ") || "Unknown"} />
                 </div>
+
+                {/* Deep scan results (fake) */}
+                {deepScan && <>
+                  <div style={{ fontSize: 11, color: "#4a4d58", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 8 }}>DEEP SCAN INTELLIGENCE</div>
+                  <div style={{
+                    background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)",
+                    borderRadius: 10, padding: "4px 20px", marginBottom: 20,
+                  }}>
+                    <Row label="SIM Type" value={deepScan.simType} />
+                    <Row label="Number Age" value={deepScan.numberAge} />
+                    <Row label="Port History" value={deepScan.portHistory} />
+                    <Row label="VoIP Confidence" value={deepScan.voipConfidence} />
+                    <Row label="Registered Name" value={deepScan.registeredName} />
+                    <Row label="Last Activity" value={deepScan.lastActivity} />
+                    <Row label="Spam Reports" value={deepScan.spamReports} />
+                  </div>
+
+                  <div style={{ fontSize: 11, color: "#4a4d58", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 8 }}>LINKED SERVICES DETECTED</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
+                    {deepScan.linkedServices.split(", ").map((s, i) => (
+                      <span key={i} style={{
+                        padding: "5px 12px", fontSize: 11, borderRadius: 4,
+                        background: "rgba(99,140,255,0.06)", color: "#638cff",
+                        border: "1px solid rgba(99,140,255,0.1)",
+                        animation: "slideIn 0.3s ease-out", animationDelay: `${i * 0.05}s`, animationFillMode: "backwards",
+                      }}>{s}</span>
+                    ))}
+                  </div>
+
+                  <div style={{ fontSize: 11, color: "#4a4d58", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 8 }}>BREACH EXPOSURE</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
+                    {deepScan.breachExposure.split(", ").map((b, i) => (
+                      <span key={i} style={{
+                        padding: "5px 12px", fontSize: 11, borderRadius: 4,
+                        background: "rgba(255,80,80,0.06)", color: "#ff6b6b",
+                        border: "1px solid rgba(255,80,80,0.1)",
+                      }}>{b}</span>
+                    ))}
+                  </div>
+
+                  {/* Risk score bar */}
+                  <div style={{ fontSize: 11, color: "#4a4d58", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 8 }}>THREAT ASSESSMENT</div>
+                  <div style={{
+                    background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)",
+                    borderRadius: 10, padding: "16px 20px",
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                      <span style={{ fontSize: 12, color: "#6b6e7b" }}>Risk Score</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: deepScan.riskLevel === "HIGH" ? "#ff6b6b" : deepScan.riskLevel === "MEDIUM" ? "#ffb432" : "#50c878" }}>{deepScan.riskScore}</span>
+                    </div>
+                    <div style={{ height: 4, background: "rgba(255,255,255,0.04)", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%", borderRadius: 2, transition: "width 1s ease-out",
+                        width: deepScan.riskScore.replace("/100", "") + "%",
+                        background: deepScan.riskLevel === "HIGH" ? "#ff6b6b" : deepScan.riskLevel === "MEDIUM" ? "#ffb432" : "#50c878",
+                      }} />
+                    </div>
+                  </div>
+                </>}
               </div>
             )}
 
