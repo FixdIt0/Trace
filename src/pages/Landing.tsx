@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Nav from "../components/Nav";
 
 type Props = { onNavigate: (p: "landing" | "search" | "docs") => void };
-const CA = "F8KqRqh1SWRDPcvDnTWvjFS87bEjzvf4C1e94ofKpump";
+const CA = "CNTgF6PHDSEyAcGWZP4iPztaF62uFk8CRpPEagicpump";
 
 // Fake live feed data
 const FEED_NAMES = ["@darkn3t", "@sk8rboy", "@luna.eth", "@0xdead", "@cryptojake", "@anon_42", "@ghostpro", "@n1nja", "@voidwalker", "@satoshi_fan", "@degenape", "@web3maxi", "@burner_acct", "@phantom_usr", "@signal_lost"];
