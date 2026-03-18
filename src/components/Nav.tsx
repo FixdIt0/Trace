@@ -22,12 +22,7 @@ export default function Nav({ onNavigate }: Props) {
       borderBottom: "1px solid rgba(255,255,255,0.04)",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => onNavigate("landing")}>
-        <div style={{
-          width: 24, height: 24, borderRadius: 6,
-          background: "linear-gradient(135deg, #638cff 0%, #4a6fd4 100%)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 12, fontWeight: 700, color: "#fff",
-        }}>T</div>
+        <img src="/logo.jpg" alt="Trace" style={{ width: 24, height: 24, borderRadius: 6 }} />
         <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: "0.08em", color: "#e8e6e1" }}>TRACE</span>
       </div>
       <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
